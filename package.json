@@ -1,0 +1,13 @@
+{
+  "name": "lacanian-sudoku",
+  "version": "0.1.1",
+  "description": "Sudoku with the Lacanian mathemes",
+  "authors": "Voyou Désoevré <web1@voyou.org>",
+  "scripts": {
+    "test": "nodeunit"
+  },
+  "devDependencies": {
+    "nodeunit": "^0.9.1"
+  }
+}
+  
