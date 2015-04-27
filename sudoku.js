@@ -1,5 +1,6 @@
 "use strict";
 require('./array');
+var _ = require('lodash');
 
 function InconsistentSet(x, y, val, message) {
   this.message = "Attempt to set inconsistent board: <"+x+","+y+","+val+">: "+message;
@@ -49,12 +50,9 @@ function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 }
 
-Board.generate = function(size, minClues) {
-  if( typeof minClues === 'undefined' )
-    minClues = size;
+Board.generate = function(size) {
   var board = Board.empty(size);
   var additions = [];
-  var solutions = [];
   do {
     var row = randomInt(0, size);
     var col = randomInt(0, size);
@@ -62,24 +60,16 @@ Board.generate = function(size, minClues) {
     if( !Array.isArray(cell) )
       continue;
     var i = randomInt(0, cell.length);
-    var next = new Board(board.size, board.cells.deepCopy());
     try {
-      next.set(col, row, cell[i]);
+      board.set(col, row, cell[i]);
       additions.push([col, row, cell[i]]);
     } catch( e ) {
       if( e instanceof InconsistentSet ) {
-        next = board;
+        board = Board.empty(size);
+        additions = [];
       }
     }
-    board = next;
-    if( additions.length < minClues )
-      continue;
-    solutions = board.solve(2);
-    if( solutions.length == 0 ) {
-      additions = [];
-      board = Board.empty(size);
-    }
-  } while( solutions.length != 1 );
+  } while( ! board.isSolved() );
   return additions;
 }
 
@@ -131,51 +121,8 @@ Board.prototype = {
         if( regionXOff + rx != x || regionYOff + ry != y )
           this.remove(regionXOff + rx, regionYOff + ry, val, x, y, val);
   },
-  _solve: function(solutions, maxSolutions) {
-    var cell = null;
-    var shortest = this.size + 1;
-    var shortRow;
-    var shortCol;
-    for( var row = 0; row < this.size; row++ ) 
-      for( var col = 0; col < this.size; col++ ) {
-        var curcell = this.cells[row * this.size + col];
-        if( Array.isArray(curcell) ) {
-          if( curcell.length < shortest ) {
-            cell = curcell;
-            shortRow = row;
-            shortCol = col;
-          }
-        }
-      }
-    if( cell === null ) {
-      solutions.push(this);
-      if( maxSolutions != 0 && solutions.length >= maxSolutions )
-        throw new MaxSolutionsReached();
-      return;
-    }
-    for(var i = 0; i < cell.length; i++ ) {
-      var attempt = new Board(this.size, this.cells.deepCopy());
-      try {
-        attempt.set(shortCol, shortRow, cell[i]);
-      } catch( e ) {
-        if( e instanceof InconsistentSet )
-          continue;
-      }
-      attempt._solve(solutions, maxSolutions);
-    }
-    return solutions;
-  },
-  solve: function(maxSolutions) {
-    if( typeof maxSolutions === 'undefined' )
-      maxSolutions = 0;
-    var solutions = [];
-    try {
-      this._solve(solutions, maxSolutions);
-    } catch( e ) {
-      if( ! (e instanceof MaxSolutionsReached) )
-        throw e;
-    }
-    return solutions;
+  isSolved: function() {
+    return ! _.some(this.cells, Array.isArray)
   },
   prettyPrint: function() {
     var ret = [];

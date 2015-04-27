@@ -6,6 +6,9 @@
   "scripts": {
     "test": "nodeunit"
   },
+  "dependencies": {
+    "lodash": "^3.7.0"
+  },
   "devDependencies": {
     "nodeunit": "^0.9.1"
   }

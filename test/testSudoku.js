@@ -45,12 +45,7 @@ exports.parseFull = function(test) {
   test.done();
 }
 
-exports.solveEmpty = function(test) {
-  S.Board.empty(9).solve(1);
-  test.done();
-}
-
-exports.solve = function(test) {
+exports.setPropogates = function(test) {
 	var board = S.Board.parse(9,
     "1 2 3 4 5 . . . . " + 
     "4 5 6 7 8 . . . 3 " +
@@ -73,21 +68,34 @@ exports.solve = function(test) {
     "6 7 8 9 1 2 3 4 5 " +
     "9 1 2 3 4 5 6 7 8"
 	);
-	var solutions = board.solve();
-	test.ok(solutions[0].equals(solution));
+	test.ok(board.equals(solution));
 	test.done();
+}
 
+exports.isSolved = function(test) {
+  var solved = S.Board.parse(9,
+    "1 2 3 4 5 6 7 8 9 " + 
+    "4 5 6 7 8 9 1 2 3 " +
+    "7 8 9 1 2 3 4 5 6 " + 
+    "2 3 4 5 6 7 8 9 1 " +
+    "5 6 7 8 9 1 2 3 4 " + 
+    "8 9 1 2 3 4 5 6 7 " +
+    "3 4 5 6 7 8 9 1 2 " +
+    "6 7 8 9 1 2 3 4 5 " +
+    "9 1 2 3 4 5 6 7 8"
+  );
+  test.ok(solved.isSolved());
+  test.done();
 }
 
 exports.generate = function(test) {
-  var additions = S.Board.generate(4);
-  var board = S.Board.empty(4);
+  var additions = S.Board.generate(9);
+  console.log(additions);
+  var board = S.Board.empty(9);
   for( var i = 0; i < additions.length; i++ ) {
     var a = additions[i];
     board.set(a[0], a[1], a[2]);
   }
-  var s = board.solve();
-  console.log(s[0].prettyPrint());
-  test.equal(board.solve().length, 1);
+  test.ok(board.isSolved());
   test.done();
 }
