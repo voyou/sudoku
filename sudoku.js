@@ -50,27 +50,66 @@ function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 }
 
-Board.generate = function(size) {
+Board.generate = function(size, symmetrical) {
+  if( symmetrical == undefined )
+    symmetrical = false;
   var board = Board.empty(size);
   var additions = [];
   do {
     var row = randomInt(0, size);
     var col = randomInt(0, size);
     var cell = board.cells[row * size + col];
+
+    var corow = size - row;
+    var cocol = size - col;
+    var cocell = board.cells[corow * size + cocol];
+    
     if( !Array.isArray(cell) )
       continue;
-    var i = randomInt(0, cell.length);
     try {
+      var i = randomInt(0, cell.length);
       board.set(col, row, cell[i]);
       additions.push([col, row, cell[i]]);
+      if( symmetrical && Array.isArray(cocell) ) {
+        var coi = randomInt(0, cocell.length);
+        board.set(cocol, corow, cocell[coi]);
+        additions.push([cocol, corow, cocell[coi]]);
+      }
     } catch( e ) {
       if( e instanceof InconsistentSet ) {
         board = Board.empty(size);
         additions = [];
-      }
+      } else
+        throw e;
     }
   } while( ! board.isSolved() );
   return additions;
+}
+
+Board.printJust = function(size, set) {
+  var rows = []
+  for( var row = 0; row < size; row++ ) {
+    rows[row] = [];
+    for( var col = 0; col < size; col++ )
+      rows[row][col] = 0;
+  }
+
+  for( var i = 0; i < set.length; i++ ) {
+    var cell = set[i];
+    rows[cell[1]][cell[0]] = cell[2];
+  }
+  
+  var lines = []
+  for( var row = 0; row < size; row++ ) {
+    var line = [];
+    for( var col = 0; col < size; col++ ) 
+      if( rows[row][col] == 0 )
+        line.push('.');
+      else
+        line.push(rows[row][col]);
+    lines.push(line.join(' '))
+  }
+  return lines.join('\n');
 }
 
 function pad(s, l) {
@@ -93,7 +132,7 @@ Board.prototype = {
         this.set(x, y, current[0]);
     }    
     else if( current == val )
-      throw new InconsistentSet(sx, sy, sval, "Iconsistent cascade <"+x+','+y+','+val+'>');
+      throw new InconsistentSet(sx, sy, sval, "Inconsistent cascade <"+x+','+y+','+val+'>');
   },
   set: function(x, y, val) {
     var current = this.cells[y * this.size + x];

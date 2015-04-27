@@ -90,7 +90,6 @@ exports.isSolved = function(test) {
 
 exports.generate = function(test) {
   var additions = S.Board.generate(9);
-  console.log(additions);
   var board = S.Board.empty(9);
   for( var i = 0; i < additions.length; i++ ) {
     var a = additions[i];
@@ -99,3 +98,16 @@ exports.generate = function(test) {
   test.ok(board.isSolved());
   test.done();
 }
+
+exports.generateSymmetrical = function(test) {
+  var additions = S.Board.generate(9, true);
+  var board = S.Board.empty(9);
+  for( var i = 0; i < additions.length; i++ ) {
+    var a = additions[i];
+    board.set(a[0], a[1], a[2]);
+  }
+  test.ok(board.isSolved());
+  test.done();
+  
+}
+
