@@ -1,6 +1,4 @@
 "use strict";
-require('./array');
-var _ = require('lodash');
 
 function InconsistentSet(x, y, val, message) {
   this.message = "Attempt to set inconsistent board: <"+x+","+y+","+val+">: "+message;
@@ -17,13 +15,13 @@ function Board(size, cells) {
 }
 
 Board.empty = function(size) {
-  var possibles = []
+  var possibles = [];
   for( var i = 0; i < size; i++ )
     possibles[i] = i + 1;
   var cells = [];
   for( var y = 0; y < size; y++ ) {
     for( var x = 0; x < size; x++ ) {
-      cells[y * size + x] = possibles.deepCopy();
+      cells[y * size + x] = possibles.slice();
     } 
   }
   return new Board(size, cells);
@@ -120,14 +118,27 @@ function pad(s, l) {
   return ret.join('');
 }
 
+function arrayEqual(a, b) {
+  return a.length = b.length &&
+          a.every(function (v, i) { 
+            var bv = b[i];
+            if( typeof v.length == 'undefined' || typeof bv.length == 'undefined' ) 
+              return v == bv;
+            else
+              return arrayEqual(v, bv);
+          });
+}
+
 Board.prototype = {
   equals: function(other) {
-    return this.cells.equals(other.cells);
+    return arrayEqual(this.cells, other.cells);
   },
   remove: function(x, y, val, sx, sy, sval) {
     var current = this.cells[y * this.size + x];
     if( Array.isArray(current) ) {
-      current.remove(val);
+      var i = current.indexOf(val);
+      if( i >= 0 )
+        current.splice(i, 1);
       if( current.length == 1 )
         this.set(x, y, current[0]);
     }    
@@ -161,7 +172,7 @@ Board.prototype = {
           this.remove(regionXOff + rx, regionYOff + ry, val, x, y, val);
   },
   isSolved: function() {
-    return ! _.some(this.cells, Array.isArray)
+    return !this.cells.some(Array.isArray);
   },
   prettyPrint: function() {
     var ret = [];
