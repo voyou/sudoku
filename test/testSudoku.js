@@ -4,10 +4,10 @@ exports.empty  = function(test) {
   var board = S.Board.empty(4);
   var p = [1, 2, 3, 4];
   var boardl = new S.Board(4, [
-    [p, p, p, p],
-    [p, p, p, p],
-    [p, p, p, p],
-    [p, p, p, p]
+    p, p, p, p,
+    p, p, p, p,
+    p, p, p, p,
+    p, p, p, p
   ]);
   test.ok(board.equals(boardl));
   test.done();
@@ -36,10 +36,10 @@ exports.parseFull = function(test) {
     "4 3 2 1 " +
     "2 1 4 3");
   var boardl = new S.Board(4, [
-    [1, 2, 3, 4],
-    [3, 4, 1, 2],
-    [4, 3, 2, 1],
-    [2, 1, 4, 3]
+    1, 2, 3, 4,
+    3, 4, 1, 2,
+    4, 3, 2, 1,
+    2, 1, 4, 3
   ]);
   test.ok(boardp.equals(boardl));
   test.done();
@@ -81,13 +81,13 @@ exports.solve = function(test) {
 
 exports.generate = function(test) {
   var additions = S.Board.generate(4);
-  console.log(additions);
   var board = S.Board.empty(4);
   for( var i = 0; i < additions.length; i++ ) {
     var a = additions[i];
     board.set(a[0], a[1], a[2]);
   }
-  console.log(board.prettyPrint());
+  var s = board.solve();
+  console.log(s[0].prettyPrint());
   test.equal(board.solve().length, 1);
   test.done();
 }

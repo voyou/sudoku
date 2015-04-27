@@ -21,9 +21,8 @@ Board.empty = function(size) {
     possibles[i] = i + 1;
   var cells = [];
   for( var y = 0; y < size; y++ ) {
-    cells[y] = [];
     for( var x = 0; x < size; x++ ) {
-      cells[y][x] = possibles.deepCopy();
+      cells[y * size + x] = possibles.deepCopy();
     } 
   }
   return new Board(size, cells);
@@ -40,14 +39,7 @@ Board.parse = function(size, string) {
       // NaN's are identified by the fact that they don't compare
       // equal to themselves.
       if( n == n ) {
-        try {
           board.set(x, y, n);
-        } catch( e ) {
-          if( e instanceof InconsistentSet ) {
-            console.log(board.prettyPrint());
-            console.log(e.message);
-          }
-        }
       }
     }
   return board;
@@ -66,7 +58,7 @@ Board.generate = function(size, minClues) {
   do {
     var row = randomInt(0, size);
     var col = randomInt(0, size);
-    var cell = board.cells[row][col];
+    var cell = board.cells[row * size + col];
     if( !Array.isArray(cell) )
       continue;
     var i = randomInt(0, cell.length);
@@ -91,13 +83,20 @@ Board.generate = function(size, minClues) {
   return additions;
 }
 
+function pad(s, l) {
+  s = s.toString();
+  var ret = [s];
+  for( var i = 0; i < l - s.length; i++  )
+    ret.push(' ');
+  return ret.join('');
+}
+
 Board.prototype = {
   equals: function(other) {
     return this.cells.equals(other.cells);
   },
   remove: function(x, y, val, sx, sy, sval) {
-    var current = this.cells[y][x];
-    //console.log("Remove "+val+" from "+x+","+y+"="+current);
+    var current = this.cells[y * this.size + x];
     if( Array.isArray(current) ) {
       current.remove(val);
       if( current.length == 1 )
@@ -107,7 +106,7 @@ Board.prototype = {
       throw new InconsistentSet(sx, sy, sval, "Iconsistent cascade <"+x+','+y+','+val+'>');
   },
   set: function(x, y, val) {
-    var current = this.cells[y][x];
+    var current = this.cells[y * this.size + x];
 
     if( !Array.isArray(current) )  {
       if( current != val )
@@ -115,7 +114,7 @@ Board.prototype = {
     }
     else if( current.indexOf(val) == -1 )
       throw new InconsistentSet(x, y, val, "Ruled out value");
-    this.cells[y][x] = val;
+    this.cells[y * this.size + x] = val;
     // Update other cells in row
     for( var rx = 0; rx < this.size; rx++ )
       if( rx != x )
@@ -133,15 +132,21 @@ Board.prototype = {
           this.remove(regionXOff + rx, regionYOff + ry, val, x, y, val);
   },
   _solve: function(solutions, maxSolutions) {
-    //console.log(this.prettyPrint());
     var cell = null;
-    top:
-    for( var row = 0; row < this.size; row++ )
-      for( var col = 0; col < this.size; col++ )
-        if( Array.isArray(this.cells[row][col]) ) {
-          cell = this.cells[row][col]; 
-          break top;
+    var shortest = this.size + 1;
+    var shortRow;
+    var shortCol;
+    for( var row = 0; row < this.size; row++ ) 
+      for( var col = 0; col < this.size; col++ ) {
+        var curcell = this.cells[row * this.size + col];
+        if( Array.isArray(curcell) ) {
+          if( curcell.length < shortest ) {
+            cell = curcell;
+            shortRow = row;
+            shortCol = col;
+          }
         }
+      }
     if( cell === null ) {
       solutions.push(this);
       if( maxSolutions != 0 && solutions.length >= maxSolutions )
@@ -151,7 +156,7 @@ Board.prototype = {
     for(var i = 0; i < cell.length; i++ ) {
       var attempt = new Board(this.size, this.cells.deepCopy());
       try {
-        attempt.set(col, row, cell[i]);
+        attempt.set(shortCol, shortRow, cell[i]);
       } catch( e ) {
         if( e instanceof InconsistentSet )
           continue;
@@ -167,7 +172,7 @@ Board.prototype = {
     try {
       this._solve(solutions, maxSolutions);
     } catch( e ) {
-      if( ! e instanceof MaxSolutionsReached )
+      if( ! (e instanceof MaxSolutionsReached) )
         throw e;
     }
     return solutions;
@@ -177,11 +182,11 @@ Board.prototype = {
     for(var row = 0; row < this.size; row++ ) {
       var line = [];
       for( var col = 0; col < this.size; col++ ) {
-        var cell = this.cells[row][col];
+        var cell = this.cells[row * this.size + col];
         if( Array.isArray(cell) )
-          line.push('['+cell.join('')+']');      
+          line.push(pad('['+cell.join('')+']', this.size+2));      
         else
-          line.push(cell);
+          line.push(pad(cell, this.size+2));
       }
       ret.push(line.join(' '));
       ret.push('\n');
