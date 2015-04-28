@@ -1,0 +1,39 @@
+.sudoku-grid {
+  width: 100%;
+}
+
+.sudoku-cell {
+  border: 1px solid gray;
+}
+
+.sudoku-cell a {
+  display:block;
+  text-align: center;
+  width: 100%;
+  color: inherit;
+}
+
+.sudoku-cell a:hover, .sudoku-cell a:focus {
+  text-decoration: none;
+}
+
+.sudoku-cell.sudoku-regiontop {
+  border-top: 2px solid black;
+}
+
+.sudoku-cell.sudoku-regionleft {
+   border-left: 2px solid black;
+ }
+ 
+.sudoku-cell.sudoku-right {
+  border-right: 2px solid black;
+ }
+ 
+.sudoku-cell.sudoku-bottom {
+  border-bottom: 2px solid black;
+}
+
+.sudoku-selector {
+  border-collapse: separate;
+  border-spacing: 2px;
+}
