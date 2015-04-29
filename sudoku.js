@@ -44,6 +44,18 @@ Board.parse = function(size, string) {
   return board;
 }
 
+Board.parseGrid = function(grid) {
+  var size = grid.length
+  var board = Board.empty(size);
+  for( var y = 0; y < size; y++ )
+    for( var x = 0; x < size; x++ ) {
+      var n = grid[y][x];
+      if( n != 0 )
+        board.set(x, y, n);
+    }
+  return board;
+}
+
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 }

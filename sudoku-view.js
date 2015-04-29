@@ -1,24 +1,60 @@
 "use strict";
 
+var S = require('./sudoku');
+
+function GridModel(size, cells, elem, showValue) {
+  this.size = size;
+  this.regionSize = Math.floor(Math.sqrt(size));
+  this.cells = cells;
+  this.elem = elem;
+}
+
+GridModel.prototype = {
+  set: function(x, y, value) {
+    this.cells[y][x] = value;
+    
+    if( this.isFilled() ) { 
+      var solved = false;
+      try {
+        var board = S.Board.parseGrid(this.cells);
+        if( board.isSolved() )
+          solved = true;
+      } catch( e ) {
+        if( ! (e instanceof S.InconsistentSet) )
+          throw e;
+      }
+      this.elem.parent().trigger('sudoku:filled', solved);
+    }
+      
+    this.elem.updateCell(x, y, value);    
+  },
+  clear: function(x, y) {
+    this.cells[y][x] = 0;
+    this.elem.clearCell(x, y);
+  },
+  isFilled: function() {
+    return this.cells.every( function(row) { 
+      return row.every( function(c) { return c != 0; }) 
+    });
+  }
+}
+
 exports.init = function($) {
   $.fn.sudoku = function(size, showValue) {
-
-    var regionSize = Math.floor(Math.sqrt(size));
   
-    if( typeof showValue == 'undefined' )
-      showValue = function (i) { return i; }
+    if( typeof showValue == 'undefined' ) 
+      showValue =  function (i) { return i; }
   
-    var board = {
-      size: size,
-      regionSize: regionSize,
-      showValue: showValue
-    }
+    var cells = [];
   
     var cellWidth = 100 / size;
     
     var table = $('<table class="sudoku-grid"></table>');
+    var board = new GridModel(size, cells, table);
+    
     for( var r = 0; r < size; r++ ) {
       var row = $('<tr>');
+      cells[r] = [];
       for( var c = 0; c < size; c++ ) {
         var cell = $('<td class="sudoku-cell"><a href="">&nbsp;</a></td>')
         var anchor = $('a', cell);
@@ -28,20 +64,33 @@ exports.init = function($) {
           cell.addClass('sudoku-bottom');
         if( c == (size - 1) )
           cell.addClass('sudoku-right');
-        if( c % regionSize == 0 )
+        if( c % board.regionSize == 0 )
           cell.addClass('sudoku-regionleft');
-        if( r % regionSize == 0 )
+        if( r % board.regionSize == 0 )
           cell.addClass('sudoku-regiontop');
+        
+        anchor.addClass('sudoku-cell-' + c + '-' + r);
         
         anchor.data('coords', [c, r]);
         anchor.data('board', board);
         row.append(cell);
+        cells[r][c] = 0;
       }
       table.append(row);
     }
 
+    table.updateCell = function(x, y, value) {
+      var cell = $('.sudoku-cell-'+x+'-'+y, this.elem);
+      cell.html(showValue(value));
+    }
+    
+    table.clearCell = function(x, y) {
+      var cell = $('.sudoku-cell-'+x+'-'+y, this.elem);
+      cell.html('&nbsp;');    
+    }
+
     table.popover({
-      content: makeSelector,
+      content: function() { return makeSelector.call(this, board, showValue); },
       container: 'body',
       placement: 'auto bottom',
       selector: '.sudoku-cell a',
@@ -52,7 +101,17 @@ exports.init = function($) {
     $('body').on('click', '.sudoku-selector-btn', function () {
       var $this = $(this);
       var cell = $this.data('cell');
-      cell.text(cell.data('board').showValue($this.data('value')));
+      var value = $this.data('value');
+      
+      var coords = cell.data('coords');
+      
+      cell.data('board').set(coords[0], coords[1], value);
+    });
+    
+    $('body').on('click', '.sudoku-clear-btn', function() {
+      var cell = $(this).data('cell');
+      var coords = cell.data('coords');
+      cell.data('board').clear(coords[0], coords[1]);
     });
     
     table.on('click', '.sudoku-cell a', function (e) {
@@ -66,19 +125,39 @@ exports.init = function($) {
     return this;
   };
   
+  function addStyle(id, selectors, properties) {
+    var selectorString = selectors.join(', ');
+    var propStrings = [];
+    for( var prop in properties ) {
+      propStrings.push(prop + ':' + properties[prop]);
+    }
+    
+    var text = selectorString + ' { ' + propStrings.join(';') + ' }';
+    
+    var elem = $('#'+id);
+    if( elem.length == 0 ) {
+      elem = $('<style type="text/css"></style>')
+      elem.prop('id', id);
+      elem.appendTo('head');
+    } 
+    elem.text(text);
+  }
+  
   function resize() {
     this.css('height', this.css('width'));
     var anchors = $('a', this);
     var anchorSize = anchors.width();
-    console.log(anchorSize);
-    anchors.css('font-size', anchorSize / 2 + 'px');
+    addStyle('sudoku-font-sizes', ['.sudoku-selector', '.sudoku-cell a'], { 
+      'font-size': (anchorSize / 2) + 'px' 
+    });
   }
  
-  function makeSelector() {
+  function makeSelector(board, showValue) {
     var $this = $(this);
-    var board = $this.data('board');
     var size = board.size;
     var side = Math.floor(Math.sqrt(size));
+    
+    var result = $('<div class="sudoku-selector-container"></div>');
     
     var table = $('<table class="sudoku-selector"></table>');
     
@@ -87,14 +166,20 @@ exports.init = function($) {
       for( var c = 0; c < side; c++ ) {
         var button = $('<td><button class="sudoku-selector-btn btn btn-default"></button></td>');
         var value = r * side + c + 1
-        $('button', button).text(board.showValue(value))
+        $('button', button).html(showValue(value))
           .data('cell', $this)
           .data('value', value);
         row.append(button);
       }
       table.append(row)
     }
+    result.append(table);
     
-    return table;
+    var clear = $('<button class="sudoku-clear-btn btn btn-default">Clear</button>');
+    clear.data('cell', $this);
+    
+    result.append(clear);
+        
+    return result;
   }
 }

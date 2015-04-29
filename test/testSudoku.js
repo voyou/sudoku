@@ -45,6 +45,24 @@ exports.parseFull = function(test) {
   test.done();
 }
 
+exports.parseGrid = function(test) {
+  var boardp = S.Board.parseGrid([
+    [1, 2, 3, 4],
+    [3, 4, 1, 2],
+    [4, 3, 2, 1],
+    [2, 1, 4, 3]
+  ]);
+  var boardl = new S.Board(4, [
+    1, 2, 3, 4,
+    3, 4, 1, 2,
+    4, 3, 2, 1,
+    2, 1, 4, 3
+  ]);
+  test.ok(boardp.equals(boardl));
+  test.done();
+}
+  
+
 exports.setPropogates = function(test) {
 	var board = S.Board.parse(9,
     "1 2 3 4 5 . . . . " + 
@@ -108,6 +126,5 @@ exports.generateSymmetrical = function(test) {
   }
   test.ok(board.isSolved());
   test.done();
-  
 }
 

@@ -35,5 +35,19 @@
 
 .sudoku-selector {
   border-collapse: separate;
-  border-spacing: 2px;
+  border-spacing: 0.125em;
+}
+
+.sudoku-selector {
+  line-height: 1em;
+}
+
+.sudoku-selector-btn {
+  font-size: inherit;
+  line-height: 1em;
+  width: 100%;
+}
+
+.sudoku-selector-container {
+  text-align: center;
 }
