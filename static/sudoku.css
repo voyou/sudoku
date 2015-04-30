@@ -56,3 +56,7 @@ a.sudoku-cell-fixed {
   color: gray;
 }
 
+.sudoku-cell, .sudoku-selector {
+  font-family: serif;
+}
+
