@@ -1,0 +1,12 @@
+.sudoku-cell, .sudoku-selector, .matheme {
+  font-family: Lora;
+}
+
+body {
+  font-family: "Open Sans"
+}
+
+.navbar-brand {
+  font-family: "Indie Flower";
+  font-size: 28px;
+}
