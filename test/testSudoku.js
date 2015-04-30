@@ -1,5 +1,7 @@
 var S = require('../sudoku.js');
 
+var arrayEqual = require('../array-equal');
+
 exports.empty  = function(test) {
   var board = S.Board.empty(4);
   var p = [1, 2, 3, 4];
@@ -106,25 +108,42 @@ exports.isSolved = function(test) {
   test.done();
 }
 
+function arrayEqual(a, b) {
+  return (Array.isArray(a) && Array.isArray(b)) && a.length == b.length &&
+          a.every(function (v, i) { 
+            var bv = b[i];
+            if( typeof v.length == 'undefined' || typeof bv.length == 'undefined' ) 
+              return v == bv;
+            else
+              return arrayEqual(v, bv);
+          });
+}
+
 exports.generate = function(test) {
-  var additions = S.Board.generate(9);
+  var generated = S.Board.generate(9);
+  var additions = generated.clues;
+  
   var board = S.Board.empty(9);
   for( var i = 0; i < additions.length; i++ ) {
     var a = additions[i];
     board.set(a[0], a[1], a[2]);
   }
   test.ok(board.isSolved());
+  test.ok(arrayEqual(board.toGrid(), generated.solution));
   test.done();
 }
 
 exports.generateSymmetrical = function(test) {
-  var additions = S.Board.generate(9, true);
+  var generated = S.Board.generate(9, true);
+  var additions = generated.clues;
+  
   var board = S.Board.empty(9);
   for( var i = 0; i < additions.length; i++ ) {
     var a = additions[i];
     board.set(a[0], a[1], a[2]);
   }
   test.ok(board.isSolved());
+  test.ok(arrayEqual(board.toGrid(), generated.solution));
   test.done();
 }
 

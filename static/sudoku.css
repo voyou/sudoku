@@ -51,3 +51,8 @@
 .sudoku-selector-container {
   text-align: center;
 }
+
+a.sudoku-cell-fixed {
+  color: gray;
+}
+

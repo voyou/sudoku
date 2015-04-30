@@ -1,6 +1,7 @@
 "use strict";
 
 var S = require('./sudoku');
+var arrayEqual = require('./array-equal');
 
 function GridModel(size, cells, elem, showValue) {
   this.size = size;
@@ -10,23 +11,18 @@ function GridModel(size, cells, elem, showValue) {
 }
 
 GridModel.prototype = {
-  set: function(x, y, value) {
+  set: function(x, y, value, fixed) {
+    if( typeof fixed === 'undefined' )
+      fixed = false;
+      
     this.cells[y][x] = value;
     
     if( this.isFilled() ) { 
-      var solved = false;
-      try {
-        var board = S.Board.parseGrid(this.cells);
-        if( board.isSolved() )
-          solved = true;
-      } catch( e ) {
-        if( ! (e instanceof S.InconsistentSet) )
-          throw e;
-      }
+      var solved = arrayEqual(this.cells, this.solution);
       this.elem.parent().trigger('sudoku:filled', solved);
     }
       
-    this.elem.updateCell(x, y, value);    
+    this.elem.updateCell(x, y, value, fixed);    
   },
   clear: function(x, y) {
     this.cells[y][x] = 0;
@@ -36,6 +32,13 @@ GridModel.prototype = {
     return this.cells.every( function(row) { 
       return row.every( function(c) { return c != 0; }) 
     });
+  },
+  generate: function() {
+    var generated = S.Board.generate(this.size, true);
+    this.solution = generated.solution;
+    generated.clues.forEach(function (clue) {
+      this.set(clue[0], clue[1], clue[2], true);
+    }.bind(this));
   }
 }
 
@@ -60,13 +63,13 @@ exports.init = function($) {
         var anchor = $('a', cell);
         
         cell.css('width', cellWidth + '%');
-        if( r == (size - 1) )
+        if( r === (size - 1) )
           cell.addClass('sudoku-bottom');
-        if( c == (size - 1) )
+        if( c === (size - 1) )
           cell.addClass('sudoku-right');
-        if( c % board.regionSize == 0 )
+        if( c % board.regionSize === 0 )
           cell.addClass('sudoku-regionleft');
-        if( r % board.regionSize == 0 )
+        if( r % board.regionSize === 0 )
           cell.addClass('sudoku-regiontop');
         
         anchor.addClass('sudoku-cell-' + c + '-' + r);
@@ -79,9 +82,11 @@ exports.init = function($) {
       table.append(row);
     }
 
-    table.updateCell = function(x, y, value) {
+    table.updateCell = function(x, y, value, fixed) {
       var cell = $('.sudoku-cell-'+x+'-'+y, this.elem);
       cell.html(showValue(value));
+      if( fixed ) 
+        cell.addClass('sudoku-cell-fixed');
     }
     
     table.clearCell = function(x, y) {
@@ -119,6 +124,11 @@ exports.init = function($) {
     });
     
     this.append(table);
+
+    board.generate();
+    
+    table.data('board', board);
+
     $(window).resize(resize.bind(table));
     resize.call(table);
     
@@ -150,6 +160,9 @@ exports.init = function($) {
     addStyle('sudoku-font-sizes', ['.sudoku-selector', '.sudoku-cell a'], { 
       'font-size': (anchorSize / 2) + 'px' 
     });
+    addStyle('sudoku-lock-size', ['.sudoku-fixed-icon'], {
+      'font-size': (anchorSize * this.data('board').regionSize / 4) + 'px'
+    });
   }
  
   function makeSelector(board, showValue) {
@@ -158,6 +171,12 @@ exports.init = function($) {
     var side = Math.floor(Math.sqrt(size));
     
     var result = $('<div class="sudoku-selector-container"></div>');
+    
+    if( $this.hasClass('sudoku-cell-fixed') ) {
+      result.append($('<span class="glyphicon glyphicon-lock sudoku-fixed-icon" title="The value of an initial clue cannot be changed"></span><span class="sr-only">The value of an initial clue cannot be changed</span>'));
+      return result;
+    }
+    
     
     var table = $('<table class="sudoku-selector"></table>');
     

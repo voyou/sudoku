@@ -1,5 +1,7 @@
 "use strict";
 
+var arrayEqual = require('./array-equal');
+
 function InconsistentSet(x, y, val, message) {
   this.message = "Attempt to set inconsistent board: <"+x+","+y+","+val+">: "+message;
 }
@@ -93,7 +95,7 @@ Board.generate = function(size, symmetrical) {
         throw e;
     }
   } while( ! board.isSolved() );
-  return additions;
+  return { clues: additions, solution: board.toGrid() };
 }
 
 Board.printJust = function(size, set) {
@@ -128,17 +130,6 @@ function pad(s, l) {
   for( var i = 0; i < l - s.length; i++  )
     ret.push(' ');
   return ret.join('');
-}
-
-function arrayEqual(a, b) {
-  return a.length = b.length &&
-          a.every(function (v, i) { 
-            var bv = b[i];
-            if( typeof v.length == 'undefined' || typeof bv.length == 'undefined' ) 
-              return v == bv;
-            else
-              return arrayEqual(v, bv);
-          });
 }
 
 Board.prototype = {
@@ -185,6 +176,21 @@ Board.prototype = {
   },
   isSolved: function() {
     return !this.cells.some(Array.isArray);
+  },
+  toGrid: function() {
+    var ret = [];
+    for( var r = 0; r < this.size; r++ ) {
+      var row = [];
+      for( var c = 0; c < this.size; c++ ) {
+        var cell = this.cells[r * this.size + c];
+        if( Array.isArray(cell) )
+          row[c] = 0;
+        else
+          row[c] = cell;
+      }
+      ret[r] = row;
+    }
+    return ret;
   },
   prettyPrint: function() {
     var ret = [];
