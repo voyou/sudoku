@@ -29,17 +29,27 @@ GridModel.prototype = {
     this.elem.clearCell(x, y);
     this.elem.parent().trigger('sudoku:not-filled');
   },
+  clearAll: function(x, y) {
+    for(var y = 0; y < this.size; y++ )
+      for( var x = 0; x < this.size; x++ )
+        this.clear(x, y);
+  },
   isFilled: function() {
     return this.cells.every( function(row) { 
       return row.every( function(c) { return c != 0; }) 
     });
   },
+  fillClues: function() {
+    this.clearAll();
+    this.clues.forEach(function (clue) {
+      this.set(clue[0], clue[1], clue[2], true);
+    }.bind(this));
+  },
   generate: function() {
     var generated = S.Board.generate(this.size, true);
     this.solution = generated.solution;
-    generated.clues.forEach(function (clue) {
-      this.set(clue[0], clue[1], clue[2], true);
-    }.bind(this));
+    this.clues = generated.clues;
+    this.fillClues();
   }
 }
 
@@ -92,7 +102,8 @@ exports.init = function($) {
     
     table.clearCell = function(x, y) {
       var cell = $('.sudoku-cell-'+x+'-'+y, this.elem);
-      cell.html('&nbsp;');    
+      cell.html('&nbsp;');
+      cell.removeClass('sudoku-cell-fixed');    
     }
 
     table.popover({
@@ -122,13 +133,14 @@ exports.init = function($) {
     
     table.on('click', '.sudoku-cell a', function (e) {
       e.preventDefault();
-    });
+    });   
     
     this.append(table);
 
     board.generate();
     
     table.data('board', board);
+    this.data('sudoku-model', board);
 
     $(window).resize(resize.bind(table));
     resize.call(table);

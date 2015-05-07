@@ -18,7 +18,15 @@ $(function() {
     }).on('sudoku:not-filled', function() {
         $('#failure').fadeOut();
         $('#success').fadeOut();      
-    });  
+    }); 
+    
+  $('#sudoku-reset').on('click', function() {
+    $('#main').data('sudoku-model').fillClues();
+  }); 
+  
+  $('#sudoku-new').on('click', function() {
+    $('#main').data('sudoku-model').generate();
+  });
   
 });
 
