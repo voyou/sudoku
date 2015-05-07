@@ -10,3 +10,7 @@ body {
   font-family: "Indie Flower";
   font-size: 28px;
 }
+
+#success, #failure {
+  display: none;
+}

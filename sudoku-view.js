@@ -27,6 +27,7 @@ GridModel.prototype = {
   clear: function(x, y) {
     this.cells[y][x] = 0;
     this.elem.clearCell(x, y);
+    this.elem.parent().trigger('sudoku:not-filled');
   },
   isFilled: function() {
     return this.cells.every( function(row) { 
