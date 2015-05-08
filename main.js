@@ -1,3 +1,6 @@
+/* global jQuery */
+/* global $ */
+
 "use strict";
 
 var SV = require('./sudoku-view');
@@ -29,5 +32,6 @@ $(function() {
   });
   
 });
+
 
 

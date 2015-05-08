@@ -1,3 +1,5 @@
+/* global window */
+
 "use strict";
 
 var S = require('./sudoku');
@@ -34,14 +36,14 @@ GridModel.prototype = {
     this.view.clearCell(x, y);
     this.view.elem.trigger('sudoku:not-filled');
   },
-  clearAll: function(x, y) {
+  clearAll: function() {
     for(var y = 0; y < this.size; y++ )
       for( var x = 0; x < this.size; x++ )
         this.clear(x, y);
   },
   isFilled: function() {
     return this.cells.every( function(row) { 
-      return row.every( function(c) { return c != 0; }) 
+      return row.every( function(c) { return c !== 0; } ); 
     });
   },
   fillClues: function() {
@@ -56,7 +58,7 @@ GridModel.prototype = {
     this.clues = generated.clues;
     this.fillClues();
   }
-}
+};
 
 function GridView(elem, size, showValue) {
   this.elem = elem;
@@ -70,7 +72,7 @@ function GridView(elem, size, showValue) {
   for( var r = 0; r < size; r++ ) {
     var row = $('<tr>');
     for( var c = 0; c < size; c++ ) {
-      var cell = $('<td class="sudoku-cell"><a href="">&nbsp;</a></td>')
+      var cell = $('<td class="sudoku-cell"><a href="">&nbsp;</a></td>');
       var anchor = $('a', cell);
       
       cell.css('width', cellWidth + '%');
@@ -127,13 +129,13 @@ GridView.prototype = {
       var row = $('<tr></tr>');
       for( var c = 0; c < side; c++ ) {
         var button = $('<td><button class="sudoku-selector-btn btn btn-default"></button></td>');
-        var value = r * side + c + 1
+        var value = r * side + c + 1;
         $('button', button).html(this.showValue(value))
           .data('cell', cell)
           .data('value', value);
         row.append(button);
       }
-      table.append(row)
+      table.append(row);
     }
     result.append(table);
     
@@ -157,11 +159,11 @@ GridView.prototype = {
     });
   }
 
-}
+};
 
 function GridController(view, model) {
   this.view = view;
-  this.model = model
+  this.model = model;
   
   var  makeSelector = this.view.makeSelector.bind(this.view);
   this.view.table.popover({
@@ -197,7 +199,7 @@ GridController.prototype = {
     var coords = cell.data('coords');
     event.data.model.clear(coords[0], coords[1]);
   }
-}
+};
 
 function addStyle(id, selectors, properties) {
   var selectorString = selectors.join(', ');
@@ -209,8 +211,8 @@ function addStyle(id, selectors, properties) {
   var text = selectorString + ' { ' + propStrings.join(';') + ' }';
   
   var elem = $('#'+id);
-  if( elem.length == 0 ) {
-    elem = $('<style type="text/css"></style>')
+  if( elem.length === 0 ) {
+    elem = $('<style type="text/css"></style>');
     elem.prop('id', id);
     elem.appendTo('head');
   } 
@@ -225,7 +227,7 @@ exports.init = function(jQuery) {
   $.fn.sudoku = function(size, showValue) {
   
     if( typeof showValue == 'undefined' ) 
-      showValue =  function (i) { return i; }
+      showValue =  function (i) { return i; };
     
     var view = new GridView(this, size, showValue);
     var model = new GridModel(size, view);
@@ -237,4 +239,4 @@ exports.init = function(jQuery) {
 
     return this;
   };
-}
+};

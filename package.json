@@ -4,6 +4,7 @@
   "description": "Sudoku with the Lacanian mathemes",
   "authors": "Voyou Désoevré <web1@voyou.org>",
   "scripts": {
+    "lint": "jshint *.js",
     "prepublish": "browserify -e main.js -o static/bundle.js",
     "prestart": "watchify -d main.js -o static/bundle.js &",
     "start": "http-server static",
@@ -15,7 +16,12 @@
     "nodeunit": "^0.9.1",
     "browserify": "^9.0.8",
     "watchify": "^3.2.0",
-    "http-server": "^0.8.0"
+    "http-server": "^0.8.0",
+    "jshint": "^2.7.0"
+  },
+  "jshintConfig": {
+    "-W097": true,
+    "predef": ["require", "exports"]
   }
 }
   

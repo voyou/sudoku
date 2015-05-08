@@ -27,7 +27,7 @@ Board.empty = function(size) {
     } 
   }
   return new Board(size, cells);
-}
+};
 
 Board.parse = function(size, string) {
   var board = Board.empty(size);
@@ -44,26 +44,26 @@ Board.parse = function(size, string) {
       }
     }
   return board;
-}
+};
 
 Board.parseGrid = function(grid) {
-  var size = grid.length
+  var size = grid.length;
   var board = Board.empty(size);
   for( var y = 0; y < size; y++ )
     for( var x = 0; x < size; x++ ) {
       var n = grid[y][x];
-      if( n != 0 )
+      if( n !== 0 )
         board.set(x, y, n);
     }
   return board;
-}
+};
 
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 }
 
 Board.generate = function(size, symmetrical) {
-  if( symmetrical == undefined )
+  if( symmetrical === undefined )
     symmetrical = false;
   var board = Board.empty(size);
   var additions = [];
@@ -96,13 +96,16 @@ Board.generate = function(size, symmetrical) {
     }
   } while( ! board.isSolved() );
   return { clues: additions, solution: board.toGrid() };
-}
+};
 
 Board.printJust = function(size, set) {
-  var rows = []
-  for( var row = 0; row < size; row++ ) {
+  var rows = [];
+  var row;
+  var col;
+  
+  for( row = 0; row < size; row++ ) {
     rows[row] = [];
-    for( var col = 0; col < size; col++ )
+    for( col = 0; col < size; col++ )
       rows[row][col] = 0;
   }
 
@@ -111,18 +114,18 @@ Board.printJust = function(size, set) {
     rows[cell[1]][cell[0]] = cell[2];
   }
   
-  var lines = []
-  for( var row = 0; row < size; row++ ) {
+  var lines = [];
+  for( row = 0; row < size; row++ ) {
     var line = [];
-    for( var col = 0; col < size; col++ ) 
-      if( rows[row][col] == 0 )
+    for( col = 0; col < size; col++ ) 
+      if( rows[row][col] === 0 )
         line.push('.');
       else
         line.push(rows[row][col]);
-    lines.push(line.join(' '))
+    lines.push(line.join(' '));
   }
   return lines.join('\n');
-}
+};
 
 function pad(s, l) {
   s = s.toString();
@@ -150,7 +153,8 @@ Board.prototype = {
   },
   set: function(x, y, val) {
     var current = this.cells[y * this.size + x];
-
+    var rx, ry;
+    
     if( !Array.isArray(current) )  {
       if( current != val )
         throw new InconsistentSet(x, y, val, "Already set");
@@ -159,18 +163,18 @@ Board.prototype = {
       throw new InconsistentSet(x, y, val, "Ruled out value");
     this.cells[y * this.size + x] = val;
     // Update other cells in row
-    for( var rx = 0; rx < this.size; rx++ )
+    for( rx = 0; rx < this.size; rx++ )
       if( rx != x )
         this.remove(rx, y, val, x, y, val);
     // Update other cells in col
-    for( var ry = 0; ry < this.size; ry++ )
+    for( ry = 0; ry < this.size; ry++ )
       if( ry != y )
         this.remove(x, ry, val, x, y, val);
     // Update other cells in region
     var regionXOff = Math.floor(x / this.regionSize) * this.regionSize;
     var regionYOff = Math.floor(y / this.regionSize) * this.regionSize;
-    for( var ry = 0; ry < this.regionSize; ry++ )
-      for( var rx = 0; rx < this.regionSize; rx++ )
+    for( ry = 0; ry < this.regionSize; ry++ )
+      for( rx = 0; rx < this.regionSize; rx++ )
         if( regionXOff + rx != x || regionYOff + ry != y )
           this.remove(regionXOff + rx, regionYOff + ry, val, x, y, val);
   },
@@ -208,7 +212,7 @@ Board.prototype = {
     }
     return ret.join('');   
   } 
-}
+};
 
 
 exports.Board = Board;
