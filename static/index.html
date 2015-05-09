@@ -1,12 +1,29 @@
 <!DOCTYPE html>
+<!--
+Copyright (C) 2015 Voyou Désoeuvré
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
 <html>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Lacanian sudoku</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
-    <link href='http://fonts.googleapis.com/css?family=Indie+Flower|Open+Sans:400italic,400' rel='stylesheet' type='text/css'>
-    <link href='http://fonts.googleapis.com/css?family=Lora:400,400italic&text=S̷a' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Indie+Flower&text=S̷udoku' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Open+Sans:400italic,400' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Lora:400,400italic&text=S̷a' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="sudoku.css">
     <link rel="stylesheet" href="lacan.css">
   </head>
@@ -32,6 +49,18 @@
     <div class="container">
       <div class="row">
         <aside class="col-md-3" id="sidebar-left">
+          <div id="result" class="">
+            <div class="alert alert-success" id="success"><strong>Right!</strong> All your mathemes are complete.</div>
+            <div class="alert alert-danger" id="failure"><strong>Wrong!</strong> Every row, column, and 2x2 square must contain all four symbols, with no repetitions.</div>
+            <div class="btn-group sudoku-controls" role="group">
+              <button type="button" id="sudoku-reset" class="btn btn-default">Reset puzzle</button>
+              <button type="button" id="sudoku-new" class="btn btn-default">New puzzle</button>
+            </div>
+          </div>
+        </aside>
+        <div class="col-md-6" id="main">
+        </div>
+        <aside class="col-md-3" id="sidebar-right">
           <p>In Lacan's mathemes of the psychoanalytic discourses, each matheme
           contains four symbols: The master signifier 
           (<span class="matheme">S<sub>1</sub></span>), knowledge 
@@ -41,16 +70,6 @@
           
           <p>Fill in the grid so that each row, column, and 2x2 square is a 
           complete matheme, containing each symbol once.</p>
-        </aside>
-        <div class="col-md-6" id="main">
-        </div>
-        <aside class="col-md-3" id="sidebar-right">
-          <div id="result" class="">
-            <div class="alert alert-success" id="success"><strong>Right!</strong> All your mathemes are complete.</div>
-            <div class="alert alert-danger" id="failure"><strong>Wrong!</strong> Every row, column, and 2x2 square must contain all four symbols, with no repetitions.</div>
-            <button type="button" id="sudoku-reset" class="btn btn-default">Reset puzzle</button>
-            <button type="button" id="sudoku-new" class="btn btn-default">New puzzle</button>
-          </div>
         </aside>
       </div>
     </div>

@@ -1,21 +1,58 @@
+/*
+Copyright (C) 2015 Voyou Désoeuvré
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 "use strict";
 
 var arrayEqual = require('./array-equal');
 
+/** 
+ * An exception that is thrown if you attempt to set a value in a sudoku 
+ * {@link Board} that is inconsistent with the already set values.
+ *
+ * @class
+ */
 function InconsistentSet(x, y, val, message) {
   this.message = "Attempt to set inconsistent board: <"+x+","+y+","+val+">: "+message;
 }
 
 exports.InconsistentSet = InconsistentSet;
 
-function MaxSolutionsReached() { }
-
+/**
+ * Represents a sudoku board. Provides methods to set values in the board.
+ * Also provides static functions to create boards in various ways, which
+ * you probably want to use instead of this constructor.
+ * 
+ * @class
+ * @param {Number} size The size of one side of the grid.
+ * @param {Array} cells A one-dimensional array of length size * size in which
+ *                      the current state of the board will be stored.
+ */
 function Board(size, cells) {
   this.size = size;
   this.cells = cells;
   this.regionSize = Math.sqrt(this.size);
 }
 
+/**
+ * Create an empty board of the given size.
+ *
+ * @param {Number} size The size of one side of the board.
+ * @returns {Board}
+ */
 Board.empty = function(size) {
   var possibles = [];
   for( var i = 0; i < size; i++ )
@@ -29,6 +66,17 @@ Board.empty = function(size) {
   return new Board(size, cells);
 };
 
+/**
+ * Create a board corresponding to a string representation.
+ *
+ * The string contains elements, separated by spaces, representing the value to go 
+ * in each cell (row by row), where a number represents a known value, and a 
+ * non-numeric string represents an unknown value.
+ *
+ * @param {number} size The size of the side of the grid.
+ * @param {string} string The string representation of the board.
+ * @returns {Board}
+ */
 Board.parse = function(size, string) {
   var board = Board.empty(size);
   var elems = string.split(' ');
@@ -46,6 +94,15 @@ Board.parse = function(size, string) {
   return board;
 };
 
+/**
+ * Create a board corresponding to a two-dimensional array.
+ *
+ * Each element of the array is an array representing a row, and each element
+ * of *that* array is a number, where 0 represents an unknown.
+ *
+ * @param {Array}
+ * @returns {Board}
+ */
 Board.parseGrid = function(grid) {
   var size = grid.length;
   var board = Board.empty(size);
@@ -58,10 +115,30 @@ Board.parseGrid = function(grid) {
   return board;
 };
 
+/**
+ * Return a random integer between two values.
+ */
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 }
 
+/**
+ * Generate a set of clues for a board with a unique solution.
+ *
+ * The algorithm used to generate boards is fast and simple, and comes up with
+ * easy boards. It picks an empty cell, fills it with one of its possible values,
+ * removes that value from the cells in the corresponding row, column, and region
+ * and then checks to see whether that gives us a board with a complete solution.
+ *
+ * @param {number} size The size of the side of the board.
+ * @param {boolean} [symmetrical=false] If this is set to true, the generator
+ *  tries (although not very hard) to produce a grid with 180 degree 
+ *  rotational symmetry.
+ * @returns {object} An object with two keys. 'clues' is an array of [x, y, value]
+ *  triples giving the values to set as initial clues, and 'solution' is a two
+ *  dimensional array giving the values in the complete grid corresponding to
+ *  those clues.
+ */
 Board.generate = function(size, symmetrical) {
   if( symmetrical === undefined )
     symmetrical = false;
@@ -98,35 +175,13 @@ Board.generate = function(size, symmetrical) {
   return { clues: additions, solution: board.toGrid() };
 };
 
-Board.printJust = function(size, set) {
-  var rows = [];
-  var row;
-  var col;
-  
-  for( row = 0; row < size; row++ ) {
-    rows[row] = [];
-    for( col = 0; col < size; col++ )
-      rows[row][col] = 0;
-  }
-
-  for( var i = 0; i < set.length; i++ ) {
-    var cell = set[i];
-    rows[cell[1]][cell[0]] = cell[2];
-  }
-  
-  var lines = [];
-  for( row = 0; row < size; row++ ) {
-    var line = [];
-    for( col = 0; col < size; col++ ) 
-      if( rows[row][col] === 0 )
-        line.push('.');
-      else
-        line.push(rows[row][col]);
-    lines.push(line.join(' '));
-  }
-  return lines.join('\n');
-};
-
+/**
+ * Pads a string with spaces at the end.
+ * 
+ * @param {string} s The string to pad.
+ * @param {number} l The minimum length of the resulting string.
+ * @returns {string}
+ */
 function pad(s, l) {
   s = s.toString();
   var ret = [s];
@@ -136,10 +191,31 @@ function pad(s, l) {
 }
 
 Board.prototype = {
+  /**
+   * Two Boards are equal if they have exactly the same values (known and 
+   * potential) for each cell.
+   *
+   * @param {Board} other
+   * @return {boolean}
+   */
   equals: function(other) {
     return arrayEqual(this.cells, other.cells);
   },
-  remove: function(x, y, val, sx, sy, sval) {
+  
+  /**
+   * Remove a value from the list of possible values for a cell.
+   *
+   * If this leaves the cell with only one remaining possible value, the cell
+   * will be set to that value, and that value removed from all the other cells
+   * in the row, column and region.
+   *
+   * If the given cell is already set to that value, throw an InconsistentSet
+   * exception.
+   * @param {number} x x co-ordinate
+   * @param {number} y y co-ordinate
+   * @param {number} val value to remove
+   */
+  remove: function(x, y, val) {
     var current = this.cells[y * this.size + x];
     if( Array.isArray(current) ) {
       var i = current.indexOf(val);
@@ -149,8 +225,21 @@ Board.prototype = {
         this.set(x, y, current[0]);
     }    
     else if( current == val )
-      throw new InconsistentSet(sx, sy, sval, "Inconsistent cascade <"+x+','+y+','+val+'>');
+      throw new InconsistentSet(x, y, val, "Inconsistent cascade");
   },
+  
+  /**
+   * Set a cell to a specific value, and remove that value from every other
+   * cell in the row, column, and region.
+   *
+   * If that cell already has a value set, and InconsistentSet exception is 
+   * thrown. If setting this value would lead to inconsistencies with other
+   * cells already set, and InconsistenSet exception is thrown.
+   *
+   * @param {number} x x coordinate
+   * @param {number} y y coordinate
+   * @param {number} val value to set
+   */ 
   set: function(x, y, val) {
     var current = this.cells[y * this.size + x];
     var rx, ry;
@@ -165,22 +254,35 @@ Board.prototype = {
     // Update other cells in row
     for( rx = 0; rx < this.size; rx++ )
       if( rx != x )
-        this.remove(rx, y, val, x, y, val);
+        this.remove(rx, y, val);
     // Update other cells in col
     for( ry = 0; ry < this.size; ry++ )
       if( ry != y )
-        this.remove(x, ry, val, x, y, val);
+        this.remove(x, ry, val);
     // Update other cells in region
     var regionXOff = Math.floor(x / this.regionSize) * this.regionSize;
     var regionYOff = Math.floor(y / this.regionSize) * this.regionSize;
     for( ry = 0; ry < this.regionSize; ry++ )
       for( rx = 0; rx < this.regionSize; rx++ )
         if( regionXOff + rx != x || regionYOff + ry != y )
-          this.remove(regionXOff + rx, regionYOff + ry, val, x, y, val);
+          this.remove(regionXOff + rx, regionYOff + ry, val);
   },
+  
+  /**
+   * Returns true if the value of every cell in the board is known.
+   *
+   * @returns {string}
+   */
   isSolved: function() {
     return !this.cells.some(Array.isArray);
   },
+  
+  /**
+   * Converts a Board to a two-dimensional array of numbers, containing
+   * the value of each cell, or 0 if unknown, organised by rows.
+   *
+   * @returns {number[][]}
+   */
   toGrid: function() {
     var ret = [];
     for( var r = 0; r < this.size; r++ ) {
@@ -196,6 +298,10 @@ Board.prototype = {
     }
     return ret;
   },
+  /* Returns a string representation of the current state of the Board
+   *
+   * @returns {string}
+   */
   prettyPrint: function() {
     var ret = [];
     for(var row = 0; row < this.size; row++ ) {
