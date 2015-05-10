@@ -3,6 +3,7 @@
   "version": "0.1.1",
   "description": "Sudoku with the Lacanian mathemes",
   "authors": "Voyou Désoevré <web1@voyou.org>",
+  "repository": "https://github.com/voyou/sudoku",
   "scripts": {
     "lint": "jshint *.js",
     "prepublish": "browserify -e main.js -o static/bundle.js",
